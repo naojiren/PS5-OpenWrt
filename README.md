@@ -1,3 +1,5 @@
+![PS5-OpenWrt 路由器改装概念图](docs/ps5-openwrt-concept.png)
+
 # PS5-OpenWrt
 
 面向 **PS5 13.00** 的外置盘 OpenWrt 实验镜像，包含实际构建脚本、内核与引导器补丁、LuCI 风扇插件源码，以及固定版本的上游源码记录。
