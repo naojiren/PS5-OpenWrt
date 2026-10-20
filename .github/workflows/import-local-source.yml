@@ -1,0 +1,46 @@
+name: Import local build sources
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and unpack reviewed public source archive
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, os, pathlib, tarfile
+          archive = pathlib.Path('PS5-OpenWrt-source.tar.gz')
+          expected = '47a184915bbdaf46d1787c449d822bf8006af8aaacc994829cb7015bb83b902b'
+          assert hashlib.sha256(archive.read_bytes()).hexdigest() == expected
+          target = pathlib.Path(os.environ['RUNNER_TEMP']) / 'ps5-public-source'
+          target.mkdir()
+          with tarfile.open(archive, 'r:gz') as source:
+              for member in source.getmembers():
+                  name = pathlib.PurePosixPath(member.name)
+                  assert not name.is_absolute() and '..' not in name.parts
+                  assert name.parts and name.parts[0] not in ('.git', '.github')
+                  assert member.isfile() or member.isdir()
+              source.extractall(target)
+          print('Verified public source files:', len(list(target.rglob('*'))))
+          PY
+      - name: Sync source tree to main
+        shell: bash
+        run: |
+          cp -a "$RUNNER_TEMP/ps5-public-source/." "$GITHUB_WORKSPACE/"
+          git rm --ignore-unmatch -- PS5-OpenWrt-source.tar.gz
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --all
+          if git diff --cached --quiet; then
+            echo 'Source tree already synchronized.'
+            exit 0
+          fi
+          git commit -m 'Import PS5 OpenWrt r1003 build sources and installation documentation'
+          git push origin HEAD:main
