@@ -1,0 +1,81 @@
+#!/bin/sh
+. /usr/share/libubox/jshn.sh
+
+target_file() {
+    local path
+    for path in /sys/bus/platform/devices/ps5-fan/target_temp /sys/bus/platform/devices/ps5-fan.0/target_temp; do
+        [ ! -f "$path" ] || { printf '%s\n' "$path"; return 0; }
+    done
+    return 1
+}
+
+fail() {
+    json_init
+    json_add_boolean ok 0
+    json_add_string error "$1"
+    json_dump
+    exit 0
+}
+
+status() {
+    local configured target actual file hw label temperature applied
+    configured=$(uci -q get ps5_fan.main.mode)
+    target=$(uci -q get ps5_fan.main.target)
+    file=$(target_file)
+    actual=
+    [ -z "$file" ] || actual=$(cat "$file" 2>/dev/null)
+    hw=0
+    [ ! -c /dev/icc ] || hw=1
+    temperature=
+    for file in /sys/class/hwmon/hwmon*/temp*_label; do
+        [ -r "$file" ] || continue
+        label=$(cat "$file")
+        case "$label" in Tctl|Tdie)
+            temperature=$(cat "${file%_label}_input" 2>/dev/null)
+            break
+            ;;
+        esac
+    done
+    applied=$(cat /var/run/ps5-fan-mode 2>/dev/null)
+    json_init
+    json_add_boolean ok 1
+    json_add_boolean hardware_available "$hw"
+    json_add_string mode "${configured:-auto}"
+    json_add_string applied_mode "${applied:-unknown}"
+    json_add_int target "${target:-80}"
+    case "$actual" in ''|*[!0-9]*) ;; *) json_add_int actual_target "$actual" ;; esac
+    case "$temperature" in ''|*[!0-9]*) ;; *) json_add_int temperature_millicelsius "$temperature" ;; esac
+    json_add_boolean percentage_control 0
+    json_add_boolean boot_auto 1
+    json_dump
+}
+
+case "${1:-status}" in
+    status) status ;;
+    apply)
+        mode=${2:-}
+        target=${3:-}
+        case "$mode" in auto|max) ;; *) fail '模式必须为 auto 或 max。' ;; esac
+        case "$target" in ''|*[!0-9]*) fail '目标温度必须为整数。' ;; esac
+        [ "${#target}" -le 2 ] && [ "$target" -ge 40 ] && [ "$target" -le 80 ] || fail '目标温度范围为 40–80°C。'
+        [ -c /dev/icc ] || fail '未找到 PS5 风扇控制器，尚未应用设置。'
+        mkdir -p /var/lock
+        exec 9>/var/lock/ps5-fan-control.lock
+        flock -x 9 || fail '风扇控制器正在处理其他请求。'
+        if [ "$mode" = auto ]; then
+            file=$(target_file)
+            [ -n "$file" ] && [ -w "$file" ] || fail '内核未提供自动控温目标接口。'
+            /usr/sbin/ps5_control --fan on >/dev/null 2>&1 || fail '开启自动调速失败。'
+            if ! printf '%s\n' "$target" > "$file"; then fail '自动调速已开启，但目标温度写入失败。'; fi
+        else
+            /usr/sbin/ps5_control --fan max >/dev/null 2>&1 || fail '切换全速模式失败。'
+        fi
+        uci set ps5_fan.main.mode="$mode"
+        uci set ps5_fan.main.target="$target"
+        uci commit ps5_fan
+        mkdir -p /var/run
+        printf '%s\n' "$mode" > /var/run/ps5-fan-mode
+        status
+        ;;
+    *) fail '未知操作。' ;;
+esac

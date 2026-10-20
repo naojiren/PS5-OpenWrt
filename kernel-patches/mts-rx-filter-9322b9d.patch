@@ -1,0 +1,103 @@
+--- a/drivers/net/phy/mts/mts.h
++++ b/drivers/net/phy/mts/mts.h
+@@ -25,6 +25,7 @@
+ #define GBE_REG_MODE		0x10
+ #define GBE_REG_MAC_HI		0x14
+ #define GBE_REG_MAC_LO		0x18
++#define GBE_REG_MC_HASH		0x1c
+ #define GBE_REG_RXBUF		0x30
+ #define GBE_REG_TX_DMA_CTRL	0x34
+ #define GBE_REG_RX_DMA_CTRL	0x38
+@@ -66,6 +67,13 @@
+ #define GBE_ERR_TCP_CKSUM	0x4000
+ #define GBE_ERR_UDP_CKSUM	0x2000
+ #define GBE_ERR_RX_PCODE	0x400
++
++#define GBE_MODE_PROMISC	BIT(4)
++#define GBE_MC_HASH_CLEAR	BIT(31)
++#define GBE_MC_HASH_CLEARED	BIT(17)
++#define GBE_MC_HASH_BUSY	BIT(14)
++#define GBE_MC_HASH_SET		0x7000
++#define GBE_MC_HASH_BITS	256
+ 
+ #define GBE_COAL_VAL		0x10001388
+ 
+--- a/drivers/net/phy/mts/mts_main.c
++++ b/drivers/net/phy/mts/mts_main.c
+@@ -14,6 +14,9 @@
+ #include <linux/ethtool.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
++#include <linux/iopoll.h>
++#include <linux/crc32.h>
++#include <linux/bitrev.h>
+ #include <linux/ps5.h>
+ 
+ #include "mts.h"
+@@ -397,26 +400,50 @@
+ 	return 0;
+ }
+ 
+-/* no hw filter wired up yet, just log what got asked for */
++static u32 gbe_mc_hash(const u8 *addr)
++{
++	u8 rev[ETH_ALEN];
++	u32 crc;
++	int i;
++
++	for (i = 0; i < ETH_ALEN; i++)
++		rev[i] = bitrev8(addr[i]);
++
++	crc = crc32_be(~0, rev, ETH_ALEN);
++	return (crc & 7) + (crc >> 27) * 8;
++}
++
+ static void gbe_set_rx_mode(struct net_device *dev)
+ {
+ 	struct gbe_priv *p = netdev_priv(dev);
+ 	struct netdev_hw_addr *ha;
+-	int mc_count = 0;
+-
+-	netdev_for_each_mc_addr(ha, dev)
+-		mc_count++;
+-
+-	netdev_info(dev,
+-		"rx_mode: flags=%#x %s%s%s%s mc_count=%d\n",
+-		dev->flags,
+-		(dev->flags & IFF_PROMISC)   ? "PROMISC "   : "",
+-		(dev->flags & IFF_ALLMULTI)  ? "ALLMULTI "  : "",
+-		(dev->flags & IFF_MULTICAST) ? "MULTICAST " : "",
+-		(dev->flags & IFF_BROADCAST) ? "BROADCAST " : "",
+-		mc_count);
+-
+-	(void)p;
++	u32 val;
++	int i;
++
++	if (dev->flags & IFF_PROMISC) {
++		gbe_set(p, GBE_REG_MODE, GBE_MODE_PROMISC);
++		return;
++	}
++
++	gbe_clr(p, GBE_REG_MODE, GBE_MODE_PROMISC);
++
++	if (dev->flags & IFF_ALLMULTI) {
++		for (i = 0; i < GBE_MC_HASH_BITS; i++)
++			gbe_wr(p, GBE_REG_MC_HASH, GBE_MC_HASH_SET | i);
++		return;
++	}
++
++	gbe_wr(p, GBE_REG_MC_HASH, GBE_MC_HASH_CLEAR);
++	if (readl_poll_timeout_atomic(p->base + GBE_REG_MC_HASH, val,
++				      val & GBE_MC_HASH_CLEARED, 1, 10000))
++		netdev_warn(dev, "mc hash clear timeout\n");
++
++	netdev_for_each_mc_addr(ha, dev) {
++		gbe_wr(p, GBE_REG_MC_HASH, GBE_MC_HASH_SET | gbe_mc_hash(ha->addr));
++		if (readl_poll_timeout_atomic(p->base + GBE_REG_MC_HASH, val,
++					      !(val & GBE_MC_HASH_BUSY), 1, 10000))
++			netdev_warn(dev, "mc hash set timeout\n");
++	}
+ }
+ 
+ static void gbe_get_drvinfo(struct net_device *dev, struct ethtool_drvinfo *info)

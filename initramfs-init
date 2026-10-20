@@ -1,0 +1,30 @@
+#!/bin/sh
+export PATH=/bin:/sbin
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+# USB SSDs commonly bind to UAS rather than usb-storage.
+modprobe uas 2>/dev/null
+echo '[PS5 OpenWrt] Finding external root filesystem'
+label=ps5-openwrt
+for arg in $(cat /proc/cmdline); do
+    case "$arg" in root=LABEL=*) label=${arg#root=LABEL=} ;; esac
+done
+mkdir -p /newroot
+count=0
+while [ "$count" -lt 90 ]; do
+    rootdev=$(findfs "LABEL=$label" 2>/dev/null)
+    if [ -n "$rootdev" ] && mount -t ext4 -o rw "$rootdev" /newroot; then
+        echo "[PS5 OpenWrt] Root mounted: $rootdev"
+        mkdir -p /newroot/dev /newroot/proc /newroot/sys
+        mount --move /dev /newroot/dev
+        mount --move /proc /newroot/proc
+        mount --move /sys /newroot/sys
+        exec switch_root /newroot /sbin/init
+        break
+    fi
+    count=$((count + 1))
+    sleep 1
+done
+echo '[PS5 OpenWrt] Unable to mount root; starting recovery shell on console'
+exec sh

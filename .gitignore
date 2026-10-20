@@ -1,0 +1,17 @@
+/private/
+/work/
+/downloads/
+/output/
+/logs/
+/archive/
+/release/
+__pycache__/
+*.pyc
+*.img
+*.img.xz
+*.apk
+*.part
+.env
+.env.*
+*.pem
+!keys/*.pub

@@ -1,0 +1,159 @@
+{
+  "passed": true,
+  "checks_passed": 37,
+  "environment": "QEMU/TCG snapshot with PS5-only initcalls skipped",
+  "checks": [
+    {
+      "name": "SSH password login",
+      "passed": true
+    },
+    {
+      "name": "PS5 kernel boot",
+      "passed": true
+    },
+    {
+      "name": "OpenWrt services",
+      "passed": true
+    },
+    {
+      "name": "Hostname and logging service",
+      "passed": true
+    },
+    {
+      "name": "Chinese interface",
+      "passed": true
+    },
+    {
+      "name": "Network configuration preserved",
+      "passed": true
+    },
+    {
+      "name": "LAN bridge uses wired MAC and upstream DHCP",
+      "passed": true
+    },
+    {
+      "name": "Automatic CN channel 36 open AP defaults",
+      "passed": true
+    },
+    {
+      "name": "Compiled Argon theme is selected",
+      "passed": true
+    },
+    {
+      "name": "RTL8156B matching driver and firmware",
+      "passed": true
+    },
+    {
+      "name": "PS5 IW620 modules load against matching kernel",
+      "passed": true
+    },
+    {
+      "name": "Wireless tools and boot firmware service",
+      "passed": true
+    },
+    {
+      "name": "Signed regulatory database is integrated",
+      "passed": true
+    },
+    {
+      "name": "Fan plugin defaults, native control tool and startup",
+      "passed": true
+    },
+    {
+      "name": "Fan RPC status without hardware",
+      "passed": true
+    },
+    {
+      "name": "Fan RPC rejects invalid control input",
+      "passed": true
+    },
+    {
+      "name": "CoreMark binary matches previously validated 16-thread build",
+      "passed": true
+    },
+    {
+      "name": "DHCP servers disabled",
+      "passed": true
+    },
+    {
+      "name": "LAN bridge forwards client DHCP to upstream router",
+      "passed": true
+    },
+    {
+      "name": "Firewall syntax and required kernel features",
+      "passed": true
+    },
+    {
+      "name": "Signed PS5 kernel package",
+      "passed": true
+    },
+    {
+      "name": "Hardware-validated MTS bridge repair preserved",
+      "passed": true
+    },
+    {
+      "name": "OpenClash and Mihomo installed with disabled unconfigured service",
+      "passed": true
+    },
+    {
+      "name": "OpenClash Ruby YAML and full DNS dependencies",
+      "passed": true
+    },
+    {
+      "name": "OpenClash TUN TPROXY and connection diagnostic kernel features",
+      "passed": true
+    },
+    {
+      "name": "Mihomo actual HTTP proxy and authenticated API",
+      "passed": true
+    },
+    {
+      "name": "WireGuard kernel and userspace",
+      "passed": true
+    },
+    {
+      "name": "Chinese LuCI login page",
+      "passed": true
+    },
+    {
+      "name": "Argon stylesheet HTTP delivery",
+      "passed": true
+    },
+    {
+      "name": "LuCI RPC password authentication",
+      "passed": true
+    },
+    {
+      "name": "LuCI browser form authentication",
+      "passed": true
+    },
+    {
+      "name": "Authenticated OpenClash LuCI page",
+      "passed": true
+    },
+    {
+      "name": "Authenticated LuCI fan RPC",
+      "passed": true
+    },
+    {
+      "name": "Unauthenticated fan changes denied",
+      "passed": true
+    },
+    {
+      "name": "LuCI fan page JavaScript delivered",
+      "passed": true
+    },
+    {
+      "name": "Forwarding, source NAT and DNS proxy",
+      "passed": true
+    },
+    {
+      "name": "Generic image upgrade blocked",
+      "passed": true
+    }
+  ],
+  "hardware_validation": {
+    "wifi_bridge_upstream_dhcp": true,
+    "openclash_subscription_on_physical_ps5": false
+  }
+}

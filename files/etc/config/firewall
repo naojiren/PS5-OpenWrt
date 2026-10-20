@@ -1,0 +1,19 @@
+config defaults
+    option input 'REJECT'
+    option output 'ACCEPT'
+    option forward 'REJECT'
+    option synflood_protect '1'
+    option flow_offloading '0'
+    option flow_offloading_hw '0'
+
+config zone
+    option name 'lan'
+    list network 'lan'
+    list network 'rescue'
+    option input 'ACCEPT'
+    option output 'ACCEPT'
+    option forward 'ACCEPT'
+    option masq '1'
+    option masq6 '0'
+    option mtu_fix '1'
+    option auto_helper '0'

@@ -1,0 +1,27 @@
+config interface 'loopback'
+    option device 'lo'
+    option proto 'static'
+    option ipaddr '127.0.0.1'
+    option netmask '255.0.0.0'
+
+config globals 'globals'
+    option packet_steering '1'
+
+config device 'ps5_lan_bridge'
+    option name 'br-lan'
+    option type 'bridge'
+    list ports 'eth0'
+
+config interface 'lan'
+    option device 'br-lan'
+    option proto 'dhcp'
+    option hostname 'PS5-OpenWrt'
+    option peerdns '1'
+
+config interface 'rescue'
+    option device 'br-lan'
+    option proto 'static'
+    option ipaddr '172.31.55.1'
+    option netmask '255.255.255.0'
+    option defaultroute '0'
+    option peerdns '0'

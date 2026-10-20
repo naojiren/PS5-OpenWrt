@@ -1,0 +1,30 @@
+#!/bin/sh
+# Prefer the PS5's internal Sony Ethernet driver over an attached USB NIC.
+nic=eth0
+for dev in /sys/class/net/*; do
+    driver=$(readlink "$dev/device/driver" 2>/dev/null)
+    case "$driver" in
+        */mts) nic=${dev##*/}; break ;;
+    esac
+done
+uci -q delete network.ps5_lan_bridge.ports
+uci add_list network.ps5_lan_bridge.ports="$nic"
+uci set network.lan.device='br-lan'
+uci set network.rescue.device='br-lan'
+# Keep the physical port's MAC for the bridge DHCP client, including when a
+# Wi-Fi interface is added later. Existing upstream reservations still apply.
+if [ -r "/sys/class/net/$nic/address" ]; then
+    uci set network.ps5_lan_bridge.macaddr="$(cat "/sys/class/net/$nic/address")"
+fi
+uci set system.@system[0].hostname='PS5-OpenWrt'
+uci set system.@system[0].timezone='CST-8'
+uci set system.@system[0].zonename='Asia/Shanghai'
+uci set luci.main.lang='zh_cn'
+if test -d /www/luci-static/argon; then
+    uci set luci.main.mediaurlbase='/luci-static/argon'
+fi
+uci set dropbear.@dropbear[0].PasswordAuth='on'
+uci set dropbear.@dropbear[0].RootPasswordAuth='on'
+uci commit
+/etc/init.d/odhcpd disable
+exit 0

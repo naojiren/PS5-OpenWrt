@@ -1,0 +1,76 @@
+{
+  "release": "v2026.10.20-r1003",
+  "upstream_repositories": {
+    "ps5-linux-patches": {
+      "url": "https://github.com/ps5-linux/ps5-linux-patches.git",
+      "commit": "56922cf9af91142cdcf7d54cbcfb3d46bdfb397a"
+    },
+    "ps5-linux-loader": {
+      "url": "https://github.com/ps5-linux/ps5-linux-loader.git",
+      "commit": "691e50f35953674cdeebe1306a01c7b7442cdc12"
+    },
+    "ps5-linux-mwifiex": {
+      "url": "https://github.com/ps5-linux/ps5-linux-mwifiex.git",
+      "commit": "4aff9085530a3cdf7d5fbb124c006cc299ac3605"
+    },
+    "nxp-mwifiex": {
+      "url": "https://github.com/nxp-imx/mwifiex.git",
+      "commit": "a5fe4e194bf99315e349d81d77d6dfacec70757a"
+    },
+    "ps5-linux-tools": {
+      "url": "https://github.com/ps5-linux/ps5-linux-tools.git",
+      "commit": "f1fa98a931ca30783b2a91d999cbcba87121ee61"
+    },
+    "OpenClash": {
+      "url": "https://github.com/vernesong/OpenClash.git",
+      "commit": "e553e82e01c697aefbe1555261a503f425e00ccd"
+    },
+    "mihomo": {
+      "url": "https://github.com/MetaCubeX/mihomo.git",
+      "commit": "88dcbf7f1614a67c3b36b848ee3592dfa92ada36"
+    },
+    "luci": {
+      "url": "https://github.com/openwrt/luci.git",
+      "commit": "75a306df84a020c57a631ef5b4c02ace56d93387"
+    },
+    "packages": {
+      "url": "https://github.com/openwrt/packages.git",
+      "commit": "093d551675b1119a06ef224d419905e8d6b2af1a"
+    },
+    "argon": {
+      "url": "https://github.com/jerrykuku/luci-theme-argon.git",
+      "commit": "9f5d1e79e67623f4006a86471116b6745ea845f7"
+    }
+  },
+  "linux": {
+    "version": "7.1.7",
+    "url": "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.1.7.tar.xz",
+    "sha256": "ca8f2a6884a4d62043e9ab93ac1ab15efc2b6630fe8f768b2ef2ffdf4b5e26df"
+  },
+  "openwrt_rootfs": {
+    "version": "25.12.6",
+    "url": "https://downloads.openwrt.org/releases/25.12.6/targets/x86/64/openwrt-25.12.6-x86-64-rootfs.tar.gz",
+    "sha256": "55e52bb34de582a1ebe56bd50f94ff54ac7c77f5bca9cae807656d1930456da4"
+  },
+  "openwrt_sdk": {
+    "url": "https://downloads.openwrt.org/releases/25.12.6/targets/x86/64/openwrt-sdk-25.12.6-x86-64_gcc-14.3.0_musl.Linux-x86_64.tar.zst",
+    "sha256": "1864152619092e781fa36a401960c8e9ae42d6a364c44ee5f0b197ca5f3c0fcc"
+  },
+  "payload_sdk": {
+    "version": "0.44",
+    "url": "https://github.com/ps5-payload-dev/sdk/releases/download/v0.44/ps5-payload-sdk.zip",
+    "sha256": "4d06eab777bb135705b5a6816688c9132efb246093fe606ac488ab6cf65ca5b0"
+  },
+  "mihomo_binary": {
+    "url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.32/mihomo-linux-amd64-compatible-v1.19.32.gz",
+    "sha256": "ba3ce607747a07f948fc35780e108a4a7c7f552a38b9bd4d115f313ebcb89c20"
+  },
+  "coremark": {
+    "source_commit": "1f483d5b8316753a742cbf5590caf5bd0a4e4777",
+    "threads": 16
+  },
+  "local_patches": {
+    "kernel-patches/mts-rx-filter-9322b9d.patch": "aa3d5c45e79831d81a46623e42f7ec2c7604bb1bca37480ea8db1220a9a21ca2",
+    "loader-patches/13.00-wifi-offset.patch": "7f40d420624372d44ca55d5e27ac1d85944fc1aa57fbb19f0ea51f7d964cc744"
+  }
+}

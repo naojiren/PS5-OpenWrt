@@ -1,0 +1,138 @@
+diff --git a/source/firmware.c b/source/firmware.c
+index 2653eaa..8df7d07 100644
+--- a/source/firmware.c
++++ b/source/firmware.c
+@@ -3,10 +3,57 @@
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <sys/stat.h>
+ 
+ #define PS5_WIFI_FW_BOOT_PATH "lib/nxp/pcieuartiw620_combo_v1.bin"
+ 
++static uint32_t firmware_crc32(const uint8_t *data, size_t size) {
++  uint32_t crc = 0;
++  for (size_t i = 0; i < size; i++) {
++    crc ^= (uint32_t)data[i] << 24;
++    for (int bit = 0; bit < 8; bit++)
++      crc = (crc << 1) ^ ((crc & 0x80000000U) ? 0x04c11db7U : 0);
++  }
++  return crc;
++}
++
++static uint32_t firmware_be32(const uint8_t *p) {
++  return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) |
++         ((uint32_t)p[2] << 8) | (uint32_t)p[3];
++}
++
++static uint32_t firmware_le32(const uint8_t *p) {
++  return (uint32_t)p[0] | ((uint32_t)p[1] << 8) |
++         ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
++}
++
++// Check record boundaries and CRCs before replacing a firmware dump. This
++// detects the observed 13.00 offset error without sending bad data to IW620.
++static int firmware_records_valid(const uint8_t *data, size_t size) {
++  if (size < 16 || firmware_le32(data) != 1 ||
++      firmware_le32(data + 4) != 0 || firmware_le32(data + 8) != 512)
++    return 0;
++  size_t pos = 0;
++  while (size - pos >= 16) {
++    uint32_t command = firmware_le32(data + pos);
++    uint32_t length = firmware_le32(data + pos + 8);
++    if (firmware_crc32(data + pos, 12) != firmware_be32(data + pos + 12))
++      return 0;
++    if (command == 4)
++      return length == 0 && firmware_le32(data + pos + 4) == 0 &&
++             pos + 16 == size;
++    if (command != 1 || length < 4 || length > 512 ||
++        length > size - pos - 16)
++      return 0;
++    if (firmware_crc32(data + pos + 16, length - 4) !=
++        firmware_be32(data + pos + 16 + length - 4))
++      return 0;
++    pos += 16 + length;
++  }
++  return 0;
++}
++
+ static size_t ps5_wifi_firmware_size(void) {
+   return (size_t)env_offset.PS5_WIFI_FW_SIZE;
+ }
+@@ -89,7 +136,7 @@ static int create_firmware_dirs(const char *boot_dir) {
+ static int dump_ps5_wifi_firmware(const char *boot_file_path) {
+   char boot_dir[512];
+   char fw_path[512];
+-  uint8_t buf[0x4000];
++  uint8_t *buf;
+   uint64_t fw_va;
+   size_t fw_size;
+   int fd;
+@@ -110,28 +157,37 @@ static int dump_ps5_wifi_firmware(const char *boot_file_path) {
+     return -1;
+   }
+ 
++  fw_va = ps5_wifi_firmware_va();
++  fw_size = ps5_wifi_firmware_size();
++  buf = malloc(fw_size);
++  if (buf == NULL)
++    return -1;
++  for (size_t copied = 0; copied < fw_size; copied += 0x4000) {
++    size_t chunk = fw_size - copied;
++    if (chunk > 0x4000)
++      chunk = 0x4000;
++    kread(fw_va + copied, buf + copied, chunk);
++  }
++  if (!firmware_records_valid(buf, fw_size)) {
++    notify("PS5 WiFi firmware records invalid for %04x; dump not replaced\n", fw);
++    free(buf);
++    return -1;
++  }
+   fd = open(fw_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+   if (fd < 0) {
+     notify("Could not create PS5 WiFi firmware file %s\n", fw_path);
++    free(buf);
+     return -1;
+   }
+-
+-  fw_va = ps5_wifi_firmware_va();
+-  fw_size = ps5_wifi_firmware_size();
+-  for (size_t copied = 0; copied < fw_size; copied += sizeof(buf)) {
+-    size_t chunk = fw_size - copied;
+-    if (chunk > sizeof(buf))
+-      chunk = sizeof(buf);
+-
+-    kread(fw_va + copied, buf, chunk);
+-    if (write_all(fd, buf, chunk) < 0) {
+-      close(fd);
+-      notify("Could not write PS5 WiFi firmware file %s\n", fw_path);
+-      return -1;
+-    }
++  if (write_all(fd, buf, fw_size) < 0) {
++    close(fd);
++    free(buf);
++    notify("Could not write PS5 WiFi firmware file %s\n", fw_path);
++    return -1;
+   }
+ 
+   close(fd);
++  free(buf);
+   notify("Dumped PS5 WiFi firmware to %s (%llu bytes)\n", fw_path,
+          (unsigned long long)fw_size);
+   return 0;
+diff --git a/source/offsets.c b/source/offsets.c
+index 952c78b..ecd157e 100644
+--- a/source/offsets.c
++++ b/source/offsets.c
+@@ -799,7 +799,9 @@ offset_list off_1300 = {
+     .FUN_TRANSMITTER_CONTROL = 0xC01CD0,
+     .FUN_MP3_INITIALIZE = 0xA0BAC0,
+     .FUN_MP3_INVOKE = 0xA0A6C0,
+-    .PS5_WIFI_FW_OFFSET = 0x1505170,
++    // 13.00: the complete firmware starts 0xa0 bytes before the upstream
++    // address. The upstream address lands inside the first data block.
++    .PS5_WIFI_FW_OFFSET = 0x15050D0,
+     .PS5_WIFI_FW_SIZE = 0x7A248,
+     .HV_MP_STARTUP_CALL = 0xC0A110,
+     .MP_STARTUP_INIT_VECTOR = 0x269238,

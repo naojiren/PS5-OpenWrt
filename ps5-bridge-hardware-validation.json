@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-20",
+  "device": "User PS5 on original system 13.00",
+  "kernel_package": "7.1.7-r1003",
+  "wifi_package": "7.1.7-r5",
+  "mts_module_sha256": "6311f35a077bc5993bb4faef608ed7371006ef369ea1903b5653a474aa315f7a",
+  "restart_confirmed_by_boot_id_change": true,
+  "user_confirmed_wifi_client_obtains_upstream_dhcp_address": true,
+  "observed_wifi_station_rx_bytes": 365084720,
+  "observed_wifi_station_tx_bytes": 448641879,
+  "scope": "MTS receive-filter repair with LAN bridge and IW620 AP; OpenClash integration is validated separately",
+  "evidence": "User confirmation and SSH inspection after restarting Linux"
+}

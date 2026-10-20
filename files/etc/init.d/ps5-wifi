@@ -1,0 +1,78 @@
+#!/bin/sh /etc/rc.common
+# Firmware is copied by the PS5 Linux loader into the boot partition.
+START=19
+STOP=89
+
+start() {
+    local firmware=nxp/pcieuartiw620_combo_v1.bin
+    local source="/boot/efi/lib/$firmware"
+    local target="/lib/firmware/$firmware"
+    if [ ! -s "$source" ]; then
+        /sbin/block mount
+    fi
+    if [ -s "$source" ]; then
+        local header
+        header=$(hexdump -v -n 12 -e '/1 "%02x"' "$source")
+        if [ "$header" != 010000000000000000020000 ]; then
+            logger -t ps5-wifi 'Invalid IW620 firmware header on boot partition; re-extract using the corrected PS5 loader.'
+            return 1
+        fi
+    fi
+    # The loader can replace its dump after an upgrade. Never retain a stale
+    # root filesystem copy merely because that file already exists.
+    if [ -s "$source" ] && ! cmp -s "$source" "$target"; then
+        mkdir -p /lib/firmware/nxp
+        cp "$source" "$target.new" || return 1
+        mv "$target.new" "$target" || return 1
+        chmod 644 "$target"
+    fi
+    if [ ! -s "$target" ]; then
+        logger -t ps5-wifi 'Wi-Fi firmware absent; run the PS5 Linux loader with firmware extraction support.'
+        return 1
+    fi
+    if [ "$(hexdump -v -n 12 -e '/1 "%02x"' "$target")" != 010000000000000000020000 ]; then
+        logger -t ps5-wifi 'Invalid installed IW620 firmware header; refusing firmware download.'
+        return 1
+    fi
+    local regdb=/usr/share/ps5-openwrt/regdb
+    local regdb_changed=0
+    # The PS5 kernel requires a signed regulatory database. Keep the database
+    # and signature together; stock OpenWrt supplies only the unsigned file.
+    if [ -s "$regdb/regulatory.db" ] && [ -s "$regdb/regulatory.db.p7s" ]; then
+        if ! cmp -s "$regdb/regulatory.db" /lib/firmware/regulatory.db || \
+           ! cmp -s "$regdb/regulatory.db.p7s" /lib/firmware/regulatory.db.p7s; then
+            cp "$regdb/regulatory.db" /lib/firmware/regulatory.db || return 1
+            cp "$regdb/regulatory.db.p7s" /lib/firmware/regulatory.db.p7s || return 1
+            regdb_changed=1
+        fi
+    fi
+    /sbin/modprobe cfg80211 || return 1
+    if [ "$regdb_changed" = 1 ]; then
+        iw reg reload || logger -t ps5-wifi 'Regulatory database reload failed; inspect the kernel log.'
+    fi
+    local country
+    country=$(uci -q get wireless.radio0.country)
+    case "$country" in
+        [A-Z][A-Z]) iw reg set "$country" || return 1 ;;
+    esac
+    /sbin/modprobe mlan || return 1
+    if [ ! -d /sys/module/moal ]; then
+        /sbin/insmod /lib/modules/"$(uname -r)"/moal.ko \
+        fw_name="$firmware" pcie_int_mode=1 drv_mode=1 cfg80211_wext=4 \
+        sta_name=mlan ext_scan=1 auto_fw_reload=0 wifi_reset_config=0 \
+        sched_scan=0 ps_mode=2 auto_ds=2 amsdu_disable=1 || return 1
+    fi
+    local tries=0
+    # NXP names the PS5 radio mwiphy0 rather than phy0.
+    while ! ls /sys/class/ieee80211/*/index >/dev/null 2>&1; do
+        tries=$((tries + 1))
+        if [ "$tries" -ge 30 ]; then
+            logger -t ps5-wifi 'IW620 did not create a wireless radio; inspect the kernel log. No automatic reset attempted.'
+            return 1
+        fi
+        sleep 1
+    done
+    if [ ! -s /etc/config/wireless ]; then
+        /sbin/wifi config
+    fi
+}

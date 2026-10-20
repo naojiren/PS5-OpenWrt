@@ -1,0 +1,7 @@
+{
+  "luci-app-ps5-fan": {
+    "description": "PS5 风扇控制",
+    "read": {"ubus": {"ps5.fan": ["status"]}},
+    "write": {"ubus": {"ps5.fan": ["apply"]}}
+  }
+}

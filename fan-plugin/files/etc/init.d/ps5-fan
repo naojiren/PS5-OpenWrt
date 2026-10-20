@@ -1,0 +1,24 @@
+#!/bin/sh /etc/rc.common
+START=17
+STOP=88
+
+start() {
+    local target
+    target=$(uci -q get ps5_fan.main.target)
+    uci set ps5_fan.main.mode=auto
+    uci commit ps5_fan
+    modprobe k10temp 2>/dev/null || true
+    if [ ! -c /dev/icc ]; then
+        logger -t ps5-fan 'PS5 fan controller unavailable; automatic startup waits for PS5 hardware.'
+        return 0
+    fi
+    /usr/libexec/ps5-fanctl apply auto "${target:-80}"
+}
+
+reload() {
+    /usr/libexec/ps5-fanctl apply "$(uci -q get ps5_fan.main.mode)" "$(uci -q get ps5_fan.main.target)"
+}
+
+stop() {
+    [ ! -c /dev/icc ] || /usr/libexec/ps5-fanctl apply auto "$(uci -q get ps5_fan.main.target)"
+}

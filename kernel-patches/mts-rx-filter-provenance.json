@@ -1,0 +1,10 @@
+{
+  "base_ps5_patches_commit": "56922cf9af91142cdcf7d54cbcfb3d46bdfb397a",
+  "upstream_commit": "9322b9d478e46101670b4ff21858a8cfd9c93c76",
+  "upstream_url": "https://github.com/ps5-linux/ps5-linux-patches/commit/9322b9d478e46101670b4ff21858a8cfd9c93c76",
+  "scope": "Receive promiscuous mode and multicast filter only; upstream IRQ/ring changes excluded",
+  "upstream_filter_function_sha256": "a0f6d8ca12f037345c45758467dd6dc8e83a61fbd9108131cd99506102018e8f",
+  "backport_patch_sha256": "aa3d5c45e79831d81a46623e42f7ec2c7604bb1bca37480ea8db1220a9a21ca2",
+  "physical_bridge_tested": true,
+  "physical_bridge_validation": "PS5 restart confirmed; user reports Wi-Fi client upstream DHCP works; bidirectional station traffic observed on 2026-10-20"
+}

@@ -1,0 +1,214 @@
+{
+  "name": "PS5 OpenWrt experimental",
+  "revision": "lan-ap-mts-openclash-mihomo-20261020",
+  "openwrt": "25.12.6",
+  "kernel_release": "7.1.7-ps5-openwrt",
+  "ps5_patches_commit": "56922cf9af91142cdcf7d54cbcfb3d46bdfb397a",
+  "kernel_package": "7.1.7-r1003",
+  "kernel_local_patches": {
+    "kernel-patches/mts-rx-filter-9322b9d.patch": "aa3d5c45e79831d81a46623e42f7ec2c7604bb1bca37480ea8db1220a9a21ca2"
+  },
+  "ethernet_filter_backport": {
+    "base_ps5_patches_commit": "56922cf9af91142cdcf7d54cbcfb3d46bdfb397a",
+    "upstream_commit": "9322b9d478e46101670b4ff21858a8cfd9c93c76",
+    "upstream_url": "https://github.com/ps5-linux/ps5-linux-patches/commit/9322b9d478e46101670b4ff21858a8cfd9c93c76",
+    "scope": "Receive promiscuous mode and multicast filter only; upstream IRQ/ring changes excluded",
+    "upstream_filter_function_sha256": "a0f6d8ca12f037345c45758467dd6dc8e83a61fbd9108131cd99506102018e8f",
+    "backport_patch_sha256": "aa3d5c45e79831d81a46623e42f7ec2c7604bb1bca37480ea8db1220a9a21ca2",
+    "physical_bridge_tested": true,
+    "physical_bridge_validation": "PS5 restart confirmed; user reports Wi-Fi client upstream DHCP works; bidirectional station traffic observed on 2026-10-20"
+  },
+  "ps5_loader_commit": "691e50f35953674cdeebe1306a01c7b7442cdc12",
+  "ps5_loader_local_patches": {
+    "loader-patches/13.00-wifi-offset.patch": "7f40d420624372d44ca55d5e27ac1d85944fc1aa57fbb19f0ea51f7d964cc744"
+  },
+  "builder_image": "alpine@sha256:85fe1e81d6758c208f3e1eed4338a1997e19d4be002d4dd32d3100c9a8c010a0",
+  "created_utc": "2026-10-20T07:43:00.556687+00:00",
+  "intended_hardware": "PS5 Phat/Slim; user console CFI-2200 B01, assuming supported 13.00 jailbreak",
+  "ps5_hardware_tested": false,
+  "rootfs_source": "Official OpenWrt binary userspace; PS5 kernel built from patched source",
+  "network": {
+    "lan": "DHCP client on br-lan",
+    "bridge": "br-lan",
+    "bridge_ports": [
+      "preferred PS5 wired Ethernet",
+      "PS5 IW620 Wi-Fi AP"
+    ],
+    "upstream_dhcp_for_clients": true,
+    "bridge_mac": "Preferred wired Ethernet MAC",
+    "rescue": "172.31.55.1/24",
+    "dhcp_server": false,
+    "ipv4_forwarding": true,
+    "lan_masquerading": true
+  },
+  "wireless_defaults": {
+    "enabled": true,
+    "mode": "ap",
+    "ssid": "PS5-OpenWrt",
+    "encryption": "none",
+    "country": "CN",
+    "band": "5g",
+    "channel": 36,
+    "htmode": "HE80",
+    "network": "lan"
+  },
+  "default_login": {
+    "username": "root",
+    "password": "password",
+    "ssh_port": 22
+  },
+  "features": {
+    "luci": true,
+    "default_theme": "argon",
+    "coremark": {
+      "enabled": true,
+      "multithreading": true,
+      "default_threads": 16
+    },
+    "rtl8156b": {
+      "driver": "r8152",
+      "matching_ps5_kernel": true,
+      "firmware": "rtl_nic/rtl8156b-2.fw",
+      "usb_adapter_hardware_tested": false
+    },
+    "iw620": {
+      "driver_modules": [
+        "mlan",
+        "moal"
+      ],
+      "matching_ps5_kernel": true,
+      "firmware": "Exported by patched PS5 Linux loader with header/data CRC validation; refreshed from boot partition when changed",
+      "signed_regulatory_database": true,
+      "wireless_hardware_tested": false
+    },
+    "openclash": {
+      "openclash_version": "0.48.002",
+      "openclash_commit": "e553e82e01c697aefbe1555261a503f425e00ccd",
+      "openclash_source": "https://github.com/vernesong/OpenClash/tree/v0.48.002",
+      "openclash_build": "OpenWrt 25.12.6 SDK from source",
+      "mihomo_version": "1.19.32",
+      "mihomo_asset": "mihomo-linux-amd64-compatible-v1.19.32.gz",
+      "mihomo_url": "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.32/mihomo-linux-amd64-compatible-v1.19.32.gz",
+      "mihomo_release_digest": "sha256:ba3ce607747a07f948fc35780e108a4a7c7f552a38b9bd4d115f313ebcb89c20",
+      "mihomo_compressed_sha256": "ba3ce607747a07f948fc35780e108a4a7c7f552a38b9bd4d115f313ebcb89c20",
+      "mihomo_binary_sha256": "7a0d59da2e678d56c899a3db996a2ad8963286c4f3634b0451435db248f13fa1",
+      "mihomo_binary_version": "Mihomo Meta v1.19.32 linux amd64 with go1.26.8 Wed Sep 30 16:55:19 UTC 2026\nUse tags: with_gvisor",
+      "mihomo_build": "Official upstream prebuilt linux amd64 compatible static binary",
+      "core_path": "/etc/openclash/core/clash_meta",
+      "default_core_type": "Meta",
+      "default_enabled": false,
+      "requires_user_subscription": true,
+      "kernel_package": "7.1.7-r1003",
+      "packages": {
+        "ps5-openclash-support-1.0.0-r1.apk": "0da8837ee84e9d136ae7bb9e35d515bc5e91a8051a0cd421da715cbbbeb35442",
+        "mihomo-1.19.32-r1.apk": "b641795d4346bd3096835373ea9855361edbbfbccfba0a4d742c1346b29b2d73",
+        "luci-app-openclash-0.48.002.apk": "7c2edc658e764279580d3cbc5c7590194ea7445c74d45f5f62d4f0f8c49281d5"
+      },
+      "signed_with": "PS5 OpenWrt image APK RSA trust key",
+      "full_dnsmasq": true,
+      "firewall_backend": "nftables",
+      "kernel_reused_after_hardware_validation": true
+    }
+  },
+  "input_sha256": {
+    "downloads/linux-7.1.7.tar.xz": "ca8f2a6884a4d62043e9ab93ac1ab15efc2b6630fe8f768b2ef2ffdf4b5e26df",
+    "downloads/openwrt-25.12.6-x86-64-rootfs.tar.gz": "55e52bb34de582a1ebe56bd50f94ff54ac7c77f5bca9cae807656d1930456da4",
+    "output/kernel.config": "456bddb1baddc734c3d330aba06662990259e6a8e5a2cc3491fe37b28641f4c1",
+    "downloads/ps5-payload-sdk.zip": "4d06eab777bb135705b5a6816688c9132efb246093fe606ac488ab6cf65ca5b0"
+  },
+  "limitations": [
+    "External storage only",
+    "No generic OpenWrt sysupgrade or stock kernel modules",
+    "Onboard Wi-Fi driver compiled; association and throughput require real PS5 verification",
+    "PS5 cold boot requires jailbreak and Linux loader again"
+  ],
+  "extra_packages": {
+    "sdk": "OpenWrt 25.12.6 x86_64 GCC 14.3.0 musl",
+    "sdk_sha256": "1864152619092e781fa36a401960c8e9ae42d6a364c44ee5f0b197ca5f3c0fcc",
+    "luci_commit": "75a306df84a020c57a631ef5b4c02ace56d93387",
+    "packages_commit": "093d551675b1119a06ef224d419905e8d6b2af1a",
+    "argon_commit": "9f5d1e79e67623f4006a86471116b6745ea845f7",
+    "argon_tag": "v2.4.8",
+    "coremark_multithreading": true,
+    "coremark_threads": 16,
+    "coremark_package_release": 2,
+    "coremark_config": {
+      "CONFIG_COREMARK_OPTIMIZE_O3": "y",
+      "CONFIG_COREMARK_ENABLE_MULTITHREADING": "y",
+      "CONFIG_COREMARK_NUMBER_OF_THREADS": "16"
+    },
+    "coremark_makefile": "#\n# Copyright (C) 2018 Lim Guo Wei\n#\n# This is free software, licensed under the GNU General Public License v2.\n# See /LICENSE for more information.\n#\n\ninclude $(TOPDIR)/rules.mk\n\nPKG_NAME:=coremark\nPKG_SOURCE_DATE:=2025-05-01\nPKG_SOURCE_VERSION:=1f483d5b8316753a742cbf5590caf5bd0a4e4777\nPKG_RELEASE:=2\n\nPKG_SOURCE:=$(PKG_NAME)-$(PKG_SOURCE_DATE).tar.gz\nPKG_SOURCE_URL:=https://codeload.github.com/eembc/coremark/tar.gz/$(PKG_SOURCE_VERSION)?\nPKG_HASH:=4067e7f260218df13f2875d8f821a8ff32a84153c6e0759d7c89f96c0a8bf987\nPKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_SOURCE_VERSION)\n\nPKG_MAINTAINER:=Lim Guo Wei <limguowei@gmail.com> \\\n\t\tAleksander Jan Bajkowski <olek2@wp.pl>\nPKG_LICENSE:=Apache-2.0\nPKG_LICENSE_FILES:=LICENSE.md\n\nPKG_BUILD_FLAGS:=no-mips16 lto\n\ninclude $(INCLUDE_DIR)/package.mk\n\ndefine Package/coremark\n  SECTION:=utils\n  CATEGORY:=Utilities\n  TITLE:=CoreMark Embedded Microprocessor Benchmark\n  URL:=https://github.com/eembc/coremark\nendef\n\ndefine Package/coremark/description\n  Embedded Microprocessor Benchmark\nendef\n\ndefine Package/coremark/config\n\tconfig COREMARK_OPTIMIZE_O3\n\t\tbool \"Use all optimizations (-O3)\"\n\t\tdepends on PACKAGE_coremark\n\t\tdefault y\n\t\thelp\n\t\t\tThis enables additional optmizations using the -O3 compilation flag.\n\n\tconfig COREMARK_ENABLE_MULTITHREADING\n\t\tbool \"Enable multithreading support\"\n\t\tdepends on PACKAGE_coremark\n\t\tdefault n\n\t\thelp\n\t\t\tThis enables multithreading support\n\n\tconfig COREMARK_NUMBER_OF_THREADS\n\t\tint \"Number of threads\"\n\t\tdepends on COREMARK_ENABLE_MULTITHREADING\n\t\tdefault 2\n\t\thelp\n\t\t\tNumber of threads to run in parallel\nendef\n\nifeq ($(CONFIG_COREMARK_OPTIMIZE_O3),y)\n\tTARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS)) -O3\nendif\n\nifeq ($(CONFIG_COREMARK_ENABLE_MULTITHREADING),y)\n\tEXTRA_CFLAGS := -DMULTITHREAD=$(CONFIG_COREMARK_NUMBER_OF_THREADS) -DUSE_PTHREAD\nendif\n\ndefine Build/Compile\n\t$(SED) 's|EXE = .exe|EXE =|' $(PKG_BUILD_DIR)/posix/core_portme.mak\n\tmkdir -p $(PKG_BUILD_DIR)/$(ARCH)\n\t$(CP) $(PKG_BUILD_DIR)/linux/* $(PKG_BUILD_DIR)/$(ARCH)/\n\t$(MAKE) -C $(PKG_BUILD_DIR) PORT_DIR=$(ARCH) $(MAKE_FLAGS) \\\n\t\tPORT_CFLAGS=\"$(TARGET_CFLAGS)\" XCFLAGS=\"$(EXTRA_CFLAGS)\" compile\nendef\n\ndefine Package/coremark/install\n\t$(INSTALL_DIR) $(1)/bin\n\t$(INSTALL_BIN) $(PKG_BUILD_DIR)/coremark $(1)/bin/\nendef\n\n$(eval $(call BuildPackage,coremark))\n",
+    "packages": {
+      "coremark-2025.05.01~1f483d5b-r2.apk": "d91c84b00674cf90ddbdbae9d5df40b9e0131c9db840b270fdb9bd515da83705",
+      "luci-theme-argon-2.4.8-r20261008.apk": "52276a840f5951a7e076a65acb2e43d28a73ca24d9f18f9e81edda3580c68b36"
+    },
+    "signed_with": "PS5 OpenWrt image APK RSA trust key"
+  },
+  "wifi_build": {
+    "kernel": "7.1.7-ps5-openwrt",
+    "ps5_mwifiex_commit": "4aff9085530a3cdf7d5fbb124c006cc299ac3605",
+    "nxp_mwifiex_commit": "a5fe4e194bf99315e349d81d77d6dfacec70757a",
+    "nxp_ref": "lf-6.18.2_1.0.0",
+    "patches": [
+      "ps5-iw620.patch",
+      "ps5-iw620-cmd-timeout-recover.patch",
+      "ps5-iw620-kernel71-compat.patch",
+      "ps5-iw620-rtnl-bounded-wait.patch"
+    ],
+    "firmware_source": "Extracted on the users PS5 by the Linux loader into boot partition lib/nxp/pcieuartiw620_combo_v1.bin",
+    "ps5_wifi_hardware_tested": false,
+    "revision": "7.1.7-r5",
+    "startup_fixes": [
+      "Detect NXP mwiphy0 radio name",
+      "Set configured regulatory domain before IW620 probe",
+      "Allow up to 30 seconds for radio initialization"
+    ],
+    "wireless_defaults": {
+      "enabled": true,
+      "mode": "ap",
+      "ssid": "PS5-OpenWrt",
+      "country": "CN",
+      "band": "5g",
+      "channel": 36,
+      "encryption": "none",
+      "network": "lan"
+    },
+    "radio_registration_verified_on_user_PS5": true,
+    "ap_association_hardware_tested": false
+  },
+  "fan_control": {
+    "ps5_linux_tools_commit": "f1fa98a931ca30783b2a91d999cbcba87121ee61",
+    "sdk": "OpenWrt 25.12.6 x86_64 GCC 14.3.0 musl",
+    "default_boot_mode": "auto",
+    "default_target_celsius": 80,
+    "manual_modes": [
+      "maximum"
+    ],
+    "arbitrary_percentage_or_rpm": false,
+    "temperature_target_range_celsius": [
+      40,
+      80
+    ],
+    "hardware_tested": false
+  },
+  "component_hardware_validation": {
+    "date": "2026-10-20",
+    "device": "User PS5 on original system 13.00",
+    "kernel_package": "7.1.7-r1003",
+    "wifi_package": "7.1.7-r5",
+    "mts_module_sha256": "6311f35a077bc5993bb4faef608ed7371006ef369ea1903b5653a474aa315f7a",
+    "restart_confirmed_by_boot_id_change": true,
+    "user_confirmed_wifi_client_obtains_upstream_dhcp_address": true,
+    "observed_wifi_station_rx_bytes": 365084720,
+    "observed_wifi_station_tx_bytes": 448641879,
+    "scope": "MTS receive-filter repair with LAN bridge and IW620 AP; OpenClash integration is validated separately",
+    "evidence": "User confirmation and SSH inspection after restarting Linux"
+  },
+  "validation": {
+    "environment": "QEMU/TCG snapshot with PS5-only initcalls skipped",
+    "checks_passed": 37,
+    "ps5_hardware_tested": false,
+    "details": "validation-vm.json"
+  },
+  "boot_partition_files_verified": true
+}

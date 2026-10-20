@@ -1,0 +1,7 @@
+#!/bin/sh
+[ "$ACTION" = add ] || exit 0
+[ -n "$INTERFACE" ] || exit 0
+for name in send_redirects accept_redirects rp_filter; do
+    path="/proc/sys/net/ipv4/conf/$INTERFACE/$name"
+    [ ! -e "$path" ] || echo 0 > "$path"
+done

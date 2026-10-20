@@ -1,0 +1,4 @@
+{
+  "model": {"id": "sony,ps5", "name": "PlayStation 5 (experimental OpenWrt)"},
+  "network": {"lan": {"device": "eth0", "protocol": "dhcp"}}
+}
