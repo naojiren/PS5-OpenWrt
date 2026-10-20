@@ -1,3 +1,5 @@
+[English](INSTALL.md) | **简体中文** · [项目介绍](../README.zh-CN.md)
+
 # PS5-OpenWrt 安装说明
 
 适用于已经满足上游 Linux 引导条件的 **PS5 Phat / Slim、13.00**。这份固件不包含越狱工具，也不指导升级主机原系统。
